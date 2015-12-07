@@ -50,7 +50,7 @@ static void child(msgbuf_t *buf) {
 	}
 }
 
-/* write messages to child forever, or until death of child. Returns
+/* write messages to child until death of child. Returns
  * EXIT_SUCCESS if child dies properly, EXIT_FAILURE otherwise */
 static int parent(msgbuf_t *buf, pid_t cpid, char *msg, size_t msglen) {
 	int ret, nread=0;
@@ -58,10 +58,7 @@ static int parent(msgbuf_t *buf, pid_t cpid, char *msg, size_t msglen) {
 
 	// CLOCK_MONOTONIC is used for portability reasons
 	clock_gettime(CLOCK_MONOTONIC, &start);
-	while(1) {
-		if (_child_is_dead) {
-			break;
-		}
+	while(!_child_is_dead) {
 		ret = msgbuf_put(buf, msg, msglen);
 		if (ret == -1 && errno != EINTR) {
 			return EXIT_FAILURE;
