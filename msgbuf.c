@@ -38,6 +38,11 @@ msgbuf_t *msgbuf_new(size_t size) {
 		return NULL;
 	}
 
+	if (mlock(buf, sizeof(msgbuf_t) + size) < 0) {
+		munmap(buf, sizeof(msgbuf_t) + size);
+		return NULL;
+	}
+
 	memset(buf, 0, sizeof(msgbuf_t));
 	buf->size = size;
 	if (sem_init(&buf->nslots_avail, 1, 1) < 0) {
@@ -58,6 +63,7 @@ void msgbuf_free(msgbuf_t *buf) {
 	if (buf != NULL) {
 		sem_destroy(&buf->nslots_avail);
 		sem_destroy(&buf->nslots_used);
+		munlock(buf, buf->size+sizeof(msgbuf_t));
 		munmap(buf, buf->size+sizeof(msgbuf_t));
 	}
 }
